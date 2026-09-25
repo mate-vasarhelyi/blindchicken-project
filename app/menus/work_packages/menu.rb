@@ -41,7 +41,7 @@ module WorkPackages
       query_generator = WorkPackages::DefaultQueryGeneratorService.new(with_project: project)
       WorkPackages::DefaultQueryGeneratorService::QUERY_OPTIONS.filter_map do |query_key|
         params = query_generator.call(query_key:)
-        next if params.nil?
+        next if params.nil? || (EnterpriseToken.hide_banners? && params[:show_enterprise_icon].present?)
 
         menu_item(
           title: I18n.t("js.work_packages.default_queries.#{query_key}"),

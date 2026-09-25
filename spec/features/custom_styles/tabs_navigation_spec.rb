@@ -44,6 +44,27 @@ RSpec.describe "Tabs navigation and content switching on the admin/design page" 
     end
   end
 
+  context "without EE token and with banners hidden",
+          with_config: { ee_hide_banners: true },
+          with_ee: false do
+    before do
+      login_as(admin)
+      visit custom_style_path(tab: "interface")
+    end
+
+    it "allows the admin to change design colors" do
+      expect(page).to have_current_path custom_style_path(tab: "interface")
+      expect(page).to have_text I18n.t(:label_interface_colors)
+      expect(page).to have_no_css(".op-enterprise-banner")
+
+      fill_in "design_colors[]accent-color", with: "#333333"
+      find("[data-test-selector='interface-colors-button']").click
+
+      expect(page).to have_css("#design_colors_accent-color", value: "#333333")
+      expect(page).to have_current_path custom_style_path(tab: "interface")
+    end
+  end
+
   context "with EE token", with_ee: %i[define_custom_style] do
     let(:custom_style) { create (:custom_style_with_logo) }
     let(:image) { "logo" }

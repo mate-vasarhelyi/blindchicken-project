@@ -87,6 +87,7 @@ module Projects
         types << "portfolio" if @current_user.allowed_globally?(:add_portfolios)
         types << "program" if @current_user.allowed_globally?(:add_programs)
         types << "project" if @current_user.allowed_globally?(:add_project)
+        types.select! { |type| workspace_type_enterprise_feature_allowed?(type) } if EnterpriseToken.hide_banners?
       end
     end
 

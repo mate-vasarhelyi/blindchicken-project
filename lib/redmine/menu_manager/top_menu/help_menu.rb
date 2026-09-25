@@ -98,7 +98,7 @@ module Redmine::MenuManager::TopMenu::HelpMenu
     menu.with_group do |menu_group|
       menu_group.with_heading(title: I18n.t("top_menu.help_and_support"))
 
-      unless EnterpriseToken.hide_banners? && EnterpriseToken.active?
+      unless EnterpriseToken.hide_banners?
         menu_group.with_item(
           **link_options_for(:upsell,
                              url_params: {

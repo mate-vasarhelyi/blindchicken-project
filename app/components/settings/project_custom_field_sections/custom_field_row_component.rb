@@ -62,7 +62,8 @@ module Settings
       end
 
       def show_enterprise_icon_for_edit_action?
-        @project_custom_field.field_format_calculated_value? && !EnterpriseToken.allows_to?(:calculated_values)
+        !EnterpriseToken.hide_banners? && @project_custom_field.field_format_calculated_value? &&
+          !EnterpriseToken.allows_to?(:calculated_values)
       end
 
       def move_actions(menu)

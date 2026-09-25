@@ -54,7 +54,10 @@ class EnterpriseToken < ApplicationRecord
     end
 
     def allows_to?(feature)
-      active_tokens.any? { |token| Authorization::EnterpriseService.new(token).call(feature).result }
+      tokens = active_tokens
+      return true if feature.to_s == "define_custom_style" && hide_banners? && tokens.empty?
+
+      tokens.any? { |token| Authorization::EnterpriseService.new(token).call(feature).result }
     end
 
     def active?

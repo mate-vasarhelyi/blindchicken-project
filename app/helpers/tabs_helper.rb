@@ -31,6 +31,8 @@
 module TabsHelper
   # Renders tabs and their content
   def render_tabs(tabs, form = nil)
+    tabs = tabs_visible_without_banners(tabs)
+
     if tabs.any?
       selected = selected_tab(tabs)
       render partial: "common/tabs", locals: { f: form, tabs:, selected_tab: selected }, formats: [:html]
@@ -40,6 +42,7 @@ module TabsHelper
   end
 
   def render_tab_header_nav(header, tabs, test_selector: nil)
+    tabs = tabs_visible_without_banners(tabs)
     return if tabs.blank?
 
     header.with_tab_nav(label: nil, test_selector:) do |tab_nav|
@@ -65,10 +68,17 @@ module TabsHelper
   end
 
   def selected_tab(tabs)
+    tabs = tabs_visible_without_banners(tabs)
     selected = tabs.detect { |t| t[:name].to_s == params[:tab].to_s } || tabs.detect { tab_route_shown?(it) }
     return selected unless selected.nil?
 
     tabs.first
+  end
+
+  def tabs_visible_without_banners(tabs)
+    return tabs unless EnterpriseToken.hide_banners?
+
+    tabs.reject { |tab| tab[:enterprise_feature].present? && !EnterpriseToken.allows_to?(tab[:enterprise_feature]) }
   end
 
   def tabs_for_key(key, params = {})

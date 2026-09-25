@@ -60,9 +60,14 @@ module Meetings
                   (filters.blank? || (filters.include?("invited_user_id") && filters.exclude?('"*"'))))
     end
 
+    def hide_unavailable_meeting_templates?
+      EnterpriseToken.hide_banners? && !EnterpriseToken.allows_to?(:meeting_templates)
+    end
+
     def templates_menu_item
       return unless User.current.logged?
       return unless can_create_meetings?
+      return if hide_unavailable_meeting_templates?
 
       templates_href = if project
                          templates_project_meetings_path(project)

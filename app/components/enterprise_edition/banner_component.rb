@@ -165,10 +165,10 @@ module EnterpriseEdition
     end
 
     def render?
+      return false if EnterpriseToken.hide_banners?
       return true if @show_always
       return false if dismissed?
       return true if feature_available? && trial_feature?
-      return false if EnterpriseToken.hide_banners?
 
       !feature_available?
     end
