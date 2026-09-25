@@ -27,13 +27,13 @@ Create a ZFS dataset whose mountpoint will be `DATA_ROOT`, and include it in a p
 
 The first holds PostgreSQL 17 data. The second holds uploaded files and other OpenProject assets. Both paths live under the same snapshot root. Create the dataset and directories in TrueNAS before running `create`. The helper checks the mountpoint and paths but does not create or configure them.
 
-Set a DNS hostname and create a protected environment file on the devbox:
+Create a protected environment file on the devbox at the helper's default path:
 
 ```sh
-install -d -m 700 ~/.config
-cp deploy/bcp/env.example ~/.config/bcp-openproject.env
-chmod 600 ~/.config/bcp-openproject.env
-$EDITOR ~/.config/bcp-openproject.env
+install -d -m 700 ~/private-config/openproject
+cp deploy/bcp/env.example ~/private-config/openproject/.env.prod
+chmod 600 ~/private-config/openproject/.env.prod
+$EDITOR ~/private-config/openproject/.env.prod
 ```
 
 The existing Cloudflare and NPM route uses `project.blindchicken.productions` and NAS port 8096. Set `DATA_ROOT` to the new dataset mountpoint, `SECRET_KEY_BASE` to a fresh hexadecimal secret with at least 64 characters, and `OPENPROJECT_SEED__ADMIN__USER__PASSWORD` to a fresh alphanumeric password with at least 32 characters. These values must be present before the public route can reach the app. Keep the env file outside Git. Values must be unquoted single lines. Leave the SMTP entries commented out unless SMTP is configured.
@@ -70,19 +70,19 @@ For an update, create a TrueNAS snapshot of the dataset after reviewing the stag
 python3 deploy/bcp/deploy.py acknowledge-backup \
   --stage <stage-id> \
   --review-sha256 <printed-yaml-sha256> \
-  --snapshot 'pool/apps/openproject@before-update'
+  --snapshot 'Pool/apps/openproject-data@before-update'
 python3 deploy/bcp/deploy.py apply --stage <stage-id> --confirm-apply
 ```
 
 The helper requires a running Custom App, a successful main image, the exact reviewed backup marker, and a match between TrueNAS's running image and the previous local deployment record. It saves the previous rendered YAML and image under the new stage's `rollback/` directory before applying. It sends only the rendered Compose config to the TrueNAS middleware over SSH; it does not copy the repository or build context to the NAS.
 
-The helper uses `sudo -n midclt call` for TrueNAS middleware operations and sends the request through SSH stdin. The checked TrueNAS 25.10.4 host has sudo subcommand logging enabled, so create and update calls may record the rendered Compose argument, including `SECRET_KEY_BASE` and any SMTP password, in the sudo audit log. The helper does not print the rendered config. Restrict access to the TrueNAS sudo logs.
+The helper invokes a fixed `sudo -n python3` command using TrueNAS's installed API client. It sends request data through SSH stdin, so `sudo` subcommand logging records no secret-bearing arguments. The helper does not print the rendered config.
 
 To roll back, stop the app, restore the pre-update dataset snapshot in TrueNAS, then reapply the saved previous render and image through the TrueNAS Custom App editor. The saved files are under `~/.local/state/bcp-openproject/stages/<stage-id>/rollback/`. Restoring the data snapshot matters when an OpenProject release has migrated the database schema.
 
 ## Proxy, mail, and acceptance
 
-In NPM, add a proxy host for `OPENPROJECT_HOSTNAME`, forward HTTP to the TrueNAS LAN address and `APP_PORT`, and enable WebSocket support. Point the existing Cloudflare DNS record or tunnel at that NPM host. Keep TLS on NPM and set Cloudflare's SSL mode to Full (strict). Do not expose port 8096 directly to the public internet.
+The owner already routes `project.blindchicken.productions` through Cloudflare and NPM to NAS port 8096. Confirm NPM WebSocket support and TLS before acceptance. Do not expose port 8096 directly to the public internet.
 
 Optional SMTP settings use OpenProject's environment aliases. Uncomment and fill `EMAIL_DELIVERY_METHOD=smtp`, `SMTP_ADDRESS`, and any needed port, domain, authentication, TLS, username, and password entries in the protected env file. A password is kept in the private rendered app config and rollback render.
 

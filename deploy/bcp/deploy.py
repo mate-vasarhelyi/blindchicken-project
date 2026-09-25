@@ -23,7 +23,7 @@ WORKFLOW = "bcp-image.yml"
 APP_NAME = "openproject"
 ROOT = Path(__file__).resolve().parent
 COMPOSE = ROOT / "compose.yaml"
-DEFAULT_ENV = Path.home() / ".config" / "bcp-openproject.env"
+DEFAULT_ENV = Path.home() / "private-config" / "openproject" / ".env.prod"
 RUNTIME_KEYS = {
     "SECRET_KEY_BASE",
     "OPENPROJECT_SEED__ADMIN__USER__PASSWORD",
@@ -101,17 +101,27 @@ def remote_output(remote_command: str, payload: str | None = None) -> str:
     return result.stdout
 
 
-def midclt_command(method: str, *params: object, job: bool = False) -> str:
-    args = ["sudo", "-n", "midclt", "call"]
-    if job:
-        args.append("-j")
-    args.append(method)
-    args.extend(json.dumps(param, separators=(",", ":")) for param in params)
-    return " ".join(shlex.quote(arg) for arg in args)
+# Keep the request on stdin. This NAS logs sudo subcommand arguments.
+REMOTE_MIDDLEWARE = """import json
+import sys
+from truenas_api_client import Client
+
+request = json.load(sys.stdin)
+client = Client()
+try:
+    if request["job"]:
+        client.call(request["method"], *request["params"], job=True, timeout=900)
+        print("{}")
+    else:
+        print(json.dumps(client.call(request["method"], *request["params"])))
+finally:
+    client.close()
+"""
 
 
 def truenas_call(method: str, *params: object, job: bool = False) -> object:
-    output = remote_output("sh -s", midclt_command(method, *params, job=job))
+    request = json.dumps({"method": method, "params": params, "job": job})
+    output = remote_output("sudo -n python3 -c " + shlex.quote(REMOTE_MIDDLEWARE), request)
     try:
         return json.loads(output)
     except json.JSONDecodeError as error:

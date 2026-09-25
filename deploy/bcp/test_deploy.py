@@ -77,20 +77,17 @@ class DeployChecks(unittest.TestCase):
         with self.assertRaises(deploy.DeployError):
             deploy.validate_backup_marker(marker, marker["stage"], "d" * 64)
 
-    def test_midclt_command_quotes_json_and_marks_jobs(self):
-        payload = {"custom_compose_config_string": "SECRET_KEY_BASE=private\n; echo unsafe"}
-        command = deploy.midclt_command("app.update", payload, job=True)
+    def test_middleware_request_keeps_secrets_out_of_sudo_arguments(self):
+        secret = "SECRET_KEY_BASE=private\n; echo unsafe"
+        payload = {"custom_compose_config_string": secret}
+        with patch.object(deploy, "remote_output", return_value="{}") as remote:
+            deploy.truenas_call("app.update", deploy.APP_NAME, payload, job=True)
+        command, request = remote.call_args.args
+        self.assertEqual(shlex.split(command)[:4], ["sudo", "-n", "python3", "-c"])
+        self.assertNotIn(secret, command)
         self.assertEqual(
-            shlex.split(command),
-            [
-                "sudo",
-                "-n",
-                "midclt",
-                "call",
-                "-j",
-                "app.update",
-                json.dumps(payload, separators=(",", ":")),
-            ],
+            json.loads(request),
+            {"method": "app.update", "params": [deploy.APP_NAME, payload], "job": True},
         )
 
     def test_compose_config_renders_a_single_digest_pinned_service(self):
