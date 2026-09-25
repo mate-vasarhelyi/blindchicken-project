@@ -424,8 +424,8 @@ RSpec.describe "baseline rendering",
   end
 
   describe "without EE and with banners hidden",
-           with_ee: false,
-           with_config: { ee_hide_banners: true } do
+           with_config: { ee_hide_banners: true },
+           with_ee: false do
     it "only offers the available baseline option" do
       wp_table.visit_query(query)
       baseline_modal.toggle_drop_modal

@@ -63,8 +63,8 @@ RSpec.describe "Admin List File storages",
   end
 
   context "with banners hidden and no enterprise token",
-          with_ee: false,
-          with_config: { ee_hide_banners: true } do
+          with_config: { ee_hide_banners: true },
+          with_ee: false do
     it "lists only available providers" do
       visit admin_settings_storages_path
       page.find_test_selector("storages-create-new-provider-button").click

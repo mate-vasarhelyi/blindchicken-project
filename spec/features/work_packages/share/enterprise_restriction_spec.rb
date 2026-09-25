@@ -62,8 +62,8 @@ RSpec.describe "Work Package Sharing Enterprise Restriction", :js do
   end
 
   context "without an enterprise token and with banners hidden",
-          with_ee: false,
-          with_config: { ee_hide_banners: true } do
+          with_config: { ee_hide_banners: true },
+          with_ee: false do
     it "hides the share button" do
       expect(page).to have_no_test_selector("op-wp-share-button")
     end
