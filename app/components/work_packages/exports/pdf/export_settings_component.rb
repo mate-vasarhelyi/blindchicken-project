@@ -73,7 +73,7 @@ module WorkPackages
               caption: I18n.t("export.dialog.pdf.export_type.options.gantt.caption"),
               disabled: !gantt_chart_allowed?,
               component: WorkPackages::Exports::PDF::Gantt::ExportSettingsComponent }
-          ]
+          ].reject { |type| type[:value] == "gantt" && EnterpriseToken.hide_banners? && !gantt_chart_allowed? }
         end
       end
     end

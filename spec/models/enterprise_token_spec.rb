@@ -91,6 +91,23 @@ RSpec.describe EnterpriseToken do
     end
   end
 
+  describe ".allows_to?" do
+    context "when banners are hidden and no active token exists",
+            with_config: { ee_hide_banners: true } do
+      it "allows custom styles but keeps other Enterprise features unavailable" do
+        expect(described_class.allows_to?(:define_custom_style)).to be true
+        expect(described_class.allows_to?(:custom_actions)).to be false
+      end
+    end
+
+    context "when banners are visible and no active token exists",
+            with_config: { ee_hide_banners: false } do
+      it "keeps custom styles unavailable" do
+        expect(described_class.allows_to?(:define_custom_style)).to be false
+      end
+    end
+  end
+
   describe ".user_limit" do
     context "without any tokens" do
       it "returns `nil` (unlimited)" do

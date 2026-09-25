@@ -155,6 +155,18 @@ RSpec.describe Projects::IndexSubHeaderComponent, type: :component do
       end
     end
 
+    context "when user has all permissions and Enterprise banners are hidden",
+            with_config: { ee_hide_banners: true },
+            with_ee: [] do
+      let(:global_permissions) { %i[add_project add_portfolios add_programs] }
+
+      it "only offers the Community project type" do
+        expect(page).to have_link(project_label)
+        expect(page).to have_no_link(portfolio_label)
+        expect(page).to have_no_link(program_label)
+      end
+    end
+
     context "when user has all permissions" do
       let(:global_permissions) { %i[add_project add_portfolios add_programs] }
 

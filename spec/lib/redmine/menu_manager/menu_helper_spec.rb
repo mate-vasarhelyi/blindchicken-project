@@ -188,6 +188,37 @@ RSpec.describe Redmine::MenuManager::MenuHelper, type: :helper do
     end
   end
 
+  describe "Enterprise menu items" do
+    context "when Enterprise banners are hidden", with_config: { ee_hide_banners: true } do
+      it "omits items requiring unavailable features" do
+        item = Redmine::MenuManager::MenuItem.new(:enterprise, "/test", enterprise_feature: :custom_actions)
+
+        expect(helper.send(:allowed_node?, item, current_user, nil)).to be false
+      end
+    end
+  end
+
+  describe "Help menu upsell link" do
+    let(:menu) { double }
+    let(:menu_group) { double }
+
+    before do
+      allow(menu).to receive(:with_group).and_yield(menu_group)
+      allow(menu_group).to receive(:with_heading)
+      allow(menu_group).to receive(:with_item)
+    end
+
+    context "when Enterprise banners are hidden", with_config: { ee_hide_banners: true } do
+      it "is omitted" do
+        allow(helper).to receive(:link_options_for)
+
+        helper.send(:add_help_and_support_items, menu)
+
+        expect(helper).not_to have_received(:link_options_for).with(:upsell, any_args)
+      end
+    end
+  end
+
   describe "#render_single_menu_node" do
     let(:item) { Redmine::MenuManager::MenuItem.new(:testing, "/test", caption: "This is a test", badge:) }
 

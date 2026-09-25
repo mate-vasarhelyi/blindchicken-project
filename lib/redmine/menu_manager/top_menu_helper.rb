@@ -96,7 +96,7 @@ module Redmine::MenuManager::TopMenuHelper
   end
 
   def render_top_menu_teaser
-    if User.current.admin? && EnterpriseToken.trial_only?
+    if User.current.admin? && EnterpriseToken.trial_only? && !EnterpriseToken.hide_banners?
       render(Primer::BaseComponent.new(tag: :div, classes: "op-app-menu--item hidden-for-mobile")) do
         render(EnterpriseEdition::BuyNowButtonComponent.new)
       end

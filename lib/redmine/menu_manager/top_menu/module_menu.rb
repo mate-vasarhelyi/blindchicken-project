@@ -80,6 +80,8 @@ module Redmine::MenuManager::TopMenu::ModuleMenu
 
   def render_action_list_items(list, items)
     items.each do |item|
+      next if EnterpriseToken.hide_banners? && item.enterprise_feature_missing?
+
       label =
         if item.enterprise_feature_missing?
           h(item.caption) + upsell_icon

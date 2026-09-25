@@ -34,6 +34,7 @@
             content_arguments: { data: { test_selector: "add-project-custom-field-attribute" } }
           ) do |sub_menu|
             OpenProject::CustomFieldFormat.enabled_for_class_name("Project")
+                                          .select { |format| !EnterpriseToken.hide_banners? || format.enterprise_feature_allowed? }
                                           .sort_by(&:name)
                                           .map do |format|
               sub_menu.with_item(

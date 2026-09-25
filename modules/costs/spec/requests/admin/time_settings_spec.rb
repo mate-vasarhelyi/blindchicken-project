@@ -53,6 +53,18 @@ RSpec.describe "Time settings",
       end
     end
 
+    context "when Enterprise banners are hidden", with_config: { ee_hide_banners: true } do
+      it "hides unavailable restriction controls and keeps community settings available" do
+        get "/admin/time"
+
+        expect(response).to have_http_status(:success)
+        expect(page).to have_field(I18n.t(:setting_allow_tracking_start_and_end_times))
+        expect(page).to have_no_field(I18n.t(:setting_enforce_tracking_start_and_end_times))
+        expect(page).to have_no_field(I18n.t(:setting_time_entries_max_hours_per_entry))
+        expect(page).to have_no_text(I18n.t(:label_time_entry_restrictions))
+      end
+    end
+
     context "with an Enterprise token", with_ee: %i[time_entry_time_restrictions] do
       it "allows editing the restriction fields" do
         get "/admin/time"

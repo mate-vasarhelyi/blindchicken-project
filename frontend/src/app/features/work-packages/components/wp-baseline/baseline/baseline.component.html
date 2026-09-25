@@ -30,13 +30,15 @@
             [selected]="!filterSelected"
           [value]="'-'"></option>
           @for (availableValue of baselineAvailableValues; track availableValue.value) {
-            <option
-              [value]="availableValue.value"
-              [selected]="availableValue.value === selectedFilter"
-              [disabled]="!(available || availableValue.value === 'oneDayAgo')"
-              >
-              {{availableValue.title}}
-            </option>
+            @if (available || Banner.showBannerFor('baseline_comparison') || availableValue.value === 'oneDayAgo') {
+              <option
+                [value]="availableValue.value"
+                [selected]="availableValue.value === selectedFilter"
+                [disabled]="!(available || availableValue.value === 'oneDayAgo')"
+                >
+                {{availableValue.title}}
+              </option>
+            }
           }
         </select>
       </div>

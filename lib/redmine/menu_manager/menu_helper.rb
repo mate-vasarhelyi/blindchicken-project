@@ -347,6 +347,8 @@ module Redmine::MenuManager::MenuHelper
   # * Checking the conditions of the item
   # * Checking the url target (project only)
   def allowed_node?(node, user, project)
+    return false if node.enterprise_feature_hidden?
+
     if node.condition && !node.condition.call(project)
       # Condition that doesn't pass
       return false

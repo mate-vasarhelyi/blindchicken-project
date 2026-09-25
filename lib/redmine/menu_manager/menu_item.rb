@@ -181,6 +181,10 @@ class Redmine::MenuManager::MenuItem < Redmine::MenuManager::TreeNode
     @enterprise_feature.present? && !EnterpriseToken.allows_to?(@enterprise_feature)
   end
 
+  def enterprise_feature_hidden?
+    EnterpriseToken.hide_banners? && enterprise_feature_missing?
+  end
+
   def show_divider_before?
     @show_divider_before || false
   end

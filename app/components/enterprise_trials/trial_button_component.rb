@@ -37,7 +37,7 @@ module EnterpriseTrials
     end
 
     def render?
-      User.current.admin? && !EnterpriseToken.active?
+      User.current.admin? && !EnterpriseToken.active? && !EnterpriseToken.hide_banners?
     end
 
     def call

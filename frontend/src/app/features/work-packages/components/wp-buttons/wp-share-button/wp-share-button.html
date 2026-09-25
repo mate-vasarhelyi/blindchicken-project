@@ -1,4 +1,5 @@
-<button
+@if (showButton) {
+  <button
   class="button toolbar-icon"
   data-test-selector="op-wp-share-button"
   [title]="text.share"
@@ -25,3 +26,4 @@
   }
 
 </button>
+}

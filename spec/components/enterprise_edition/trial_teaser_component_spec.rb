@@ -65,6 +65,20 @@ RSpec.describe EnterpriseEdition::TrialTeaserComponent, type: :component do
     end
   end
 
+  context "when Enterprise banners are hidden" do
+    current_user { build(:admin) }
+
+    before do
+      allow(EnterpriseToken).to receive(:hide_banners?).and_return(true)
+    end
+
+    it "does not render the trial teaser" do
+      render_inline(described_class.new)
+
+      expect(page).to have_no_css("[data-test-selector='op-enterprise-banner']")
+    end
+  end
+
   context "for a non-admin user" do
     current_user { build(:user) }
 

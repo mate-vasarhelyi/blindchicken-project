@@ -62,6 +62,8 @@ export class WorkPackageShareButtonComponent extends UntilDestroyedMixin impleme
 
   showEnterpriseIcon = !this.bannersService.allowsTo('work_package_sharing');
 
+  showButton = !this.showEnterpriseIcon || this.bannersService.showBannerFor('work_package_sharing');
+
   shareCount$:Observable<number>;
 
   public text = {

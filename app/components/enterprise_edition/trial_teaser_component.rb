@@ -53,7 +53,7 @@ module EnterpriseEdition
     end
 
     def render?
-      User.current.admin? && EnterpriseToken.trial_only?
+      User.current.admin? && EnterpriseToken.trial_only? && !EnterpriseToken.hide_banners?
     end
 
     def token

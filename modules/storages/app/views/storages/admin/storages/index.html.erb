@@ -29,6 +29,8 @@
                               test_selector: "storages-create-new-provider-button" }
         ) do |menu|
           ::Storages::Storage.provider_types.each_pair do |short, klass|
+            next if EnterpriseToken.hide_banners? && klass.disallowed_by_enterprise_token?
+
             menu.with_item(
               label: I18n.t("storages.provider_types.#{short}.name"),
               href: url_helpers.new_admin_settings_storage_path(provider: short)

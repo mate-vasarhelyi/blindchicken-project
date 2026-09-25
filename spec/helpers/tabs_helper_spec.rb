@@ -47,6 +47,26 @@ RSpec.describe TabsHelper do
       label: :label_avatar }
   end
 
+  describe "selected_tab" do
+    let(:tabs) do
+      [
+        { name: "community", path: "/community", label: "Community" },
+        { name: "enterprise", path: "/enterprise", label: "Enterprise", enterprise_feature: :custom_actions }
+      ]
+    end
+
+    before do
+      allow(EnterpriseToken).to receive(:hide_banners?).and_return(true)
+      allow(EnterpriseToken).to receive(:allows_to?).and_call_original
+    end
+
+    it "selects the first available tab when the requested tab requires an unavailable Enterprise feature" do
+      allow(params).to receive(:[]).with(:tab).and_return("enterprise")
+
+      expect(selected_tab(tabs)[:name]).to eq("community")
+    end
+  end
+
   describe "tabs_for_key" do
     let(:current_user) { build(:user) }
     let(:user) { build(:user, id: 2) }
