@@ -1,4 +1,6 @@
+import json
 import os
+import shlex
 import tempfile
 import unittest
 from pathlib import Path
@@ -72,6 +74,22 @@ class DeployChecks(unittest.TestCase):
         )
         with self.assertRaises(deploy.DeployError):
             deploy.validate_backup_marker(marker, marker["stage"], "d" * 64)
+
+    def test_midclt_command_quotes_json_and_marks_jobs(self):
+        payload = {"custom_compose_config_string": "SECRET_KEY_BASE=private\n; echo unsafe"}
+        command = deploy.midclt_command("app.update", payload, job=True)
+        self.assertEqual(
+            shlex.split(command),
+            [
+                "sudo",
+                "-n",
+                "midclt",
+                "call",
+                "-j",
+                "app.update",
+                json.dumps(payload, separators=(",", ":")),
+            ],
+        )
 
     def test_compose_config_renders_a_single_digest_pinned_service(self):
         env_path = Path(__file__).with_name("env.fixture")

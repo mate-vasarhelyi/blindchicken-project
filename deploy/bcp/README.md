@@ -76,7 +76,7 @@ python3 deploy/bcp/deploy.py apply --stage <stage-id> --confirm-apply
 
 The helper requires a running Custom App, a successful main image, the exact reviewed backup marker, and a match between TrueNAS's running image and the previous local deployment record. It saves the previous rendered YAML and image under the new stage's `rollback/` directory before applying. It sends only the rendered Compose config to the TrueNAS middleware over SSH; it does not copy the repository or build context to the NAS.
 
-On the checked TrueNAS 25.10.4 host, the `truenas_api_client` Python module is installed but the `truenas_api_client` CLI command is absent. The helper uses the installed module through `sudo -n python3` and sends the request on SSH stdin so rendered secrets stay out of command arguments and sudo's subcommand log.
+The helper uses `sudo -n midclt call` for TrueNAS middleware operations and sends the request through SSH stdin. The checked TrueNAS 25.10.4 host has sudo subcommand logging enabled, so create and update calls may record the rendered Compose argument, including `SECRET_KEY_BASE` and any SMTP password, in the sudo audit log. The helper does not print the rendered config. Restrict access to the TrueNAS sudo logs.
 
 To roll back, stop the app, restore the pre-update dataset snapshot in TrueNAS, then reapply the saved previous render and image through the TrueNAS Custom App editor. The saved files are under `~/.local/state/bcp-openproject/stages/<stage-id>/rollback/`. Restoring the data snapshot matters when an OpenProject release has migrated the database schema.
 

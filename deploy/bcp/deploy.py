@@ -86,15 +86,6 @@ def command(args: list[str], *, env: dict[str, str] | None = None) -> str:
     return result.stdout
 
 
-REMOTE_PROGRAM = """import json, sys
-from truenas_api_client import Client
-request = json.load(sys.stdin)
-with Client() as client:
-    result = client.call(request["method"], *request["params"], job=request.get("job", False))
-print(json.dumps(result))
-"""
-
-
 def remote_output(remote_command: str, payload: str | None = None) -> str:
     try:
         result = subprocess.run(
@@ -109,10 +100,17 @@ def remote_output(remote_command: str, payload: str | None = None) -> str:
     return result.stdout
 
 
+def midclt_command(method: str, *params: object, job: bool = False) -> str:
+    args = ["sudo", "-n", "midclt", "call"]
+    if job:
+        args.append("-j")
+    args.append(method)
+    args.extend(json.dumps(param, separators=(",", ":")) for param in params)
+    return " ".join(shlex.quote(arg) for arg in args)
+
+
 def truenas_call(method: str, *params: object, job: bool = False) -> object:
-    request = json.dumps({"method": method, "params": params, "job": job})
-    remote_command = "sudo -n python3 -c " + shlex.quote(REMOTE_PROGRAM)
-    output = remote_output(remote_command, request)
+    output = remote_output("sh -s", midclt_command(method, *params, job=job))
     try:
         return json.loads(output)
     except json.JSONDecodeError as error:
