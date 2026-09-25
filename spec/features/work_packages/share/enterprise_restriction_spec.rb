@@ -51,21 +51,28 @@ RSpec.describe "Work Package Sharing Enterprise Restriction", :js do
 
   current_user { sharer }
 
-  before do
-    work_package_page.visit!
-    work_package_page.click_share_button
-
-    share_modal.expect_open
-  end
+  before { work_package_page.visit! }
 
   context "without an enterprise token" do
     it "renders an upsell banner" do
+      work_package_page.click_share_button
+      share_modal.expect_open
       share_modal.expect_upsell_banner
+    end
+  end
+
+  context "without an enterprise token and with banners hidden",
+          with_ee: false,
+          with_config: { ee_hide_banners: true } do
+    it "hides the share button" do
+      expect(page).to have_no_test_selector("op-wp-share-button")
     end
   end
 
   context "with an enterprise token", with_ee: %i[work_package_sharing] do
     it "renders the share modal" do
+      work_package_page.click_share_button
+      share_modal.expect_open
       share_modal.expect_blankslate
     end
   end

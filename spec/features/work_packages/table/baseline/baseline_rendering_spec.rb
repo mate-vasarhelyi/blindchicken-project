@@ -423,6 +423,20 @@ RSpec.describe "baseline rendering",
     end
   end
 
+  describe "without EE and with banners hidden",
+           with_ee: false,
+           with_config: { ee_hide_banners: true } do
+    it "only offers the available baseline option" do
+      wp_table.visit_query(query)
+      baseline_modal.toggle_drop_modal
+      baseline_modal.expect_open
+
+      expect(page).to have_select("op-baseline-filter", with_options: ["yesterday"])
+      expect(page).to have_no_select("op-baseline-filter", with_options: ["a specific date"])
+      expect(page).not_to have_enterprise_banner
+    end
+  end
+
   describe "without EE", with_ee: false do
     it "disabled options" do
       wp_table.visit_query(query)

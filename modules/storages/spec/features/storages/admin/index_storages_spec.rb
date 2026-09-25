@@ -62,6 +62,21 @@ RSpec.describe "Admin List File storages",
     end
   end
 
+  context "with banners hidden and no enterprise token",
+          with_ee: false,
+          with_config: { ee_hide_banners: true } do
+    it "lists only available providers" do
+      visit admin_settings_storages_path
+      page.find_test_selector("storages-create-new-provider-button").click
+
+      within_test_selector("storages-select-provider-action-menu") do
+        expect(page).to have_text("Nextcloud")
+        expect(page).to have_no_text("OneDrive")
+        expect(page).to have_no_text("SharePoint")
+      end
+    end
+  end
+
   context "with no storages" do
     before do
       visit admin_settings_storages_path
