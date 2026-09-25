@@ -1,0 +1,71 @@
+name: BCP image
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and publish all-in-one image
+        id: image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/prod/Dockerfile
+          target: all-in-one
+          platforms: linux/amd64
+          push: true
+          tags: ghcr.io/${{ github.repository }}:sha-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Write image reference
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}:sha-${{ github.sha }}@${{ steps.image.outputs.digest }}
+          COMMIT: ${{ github.sha }}
+          REPOSITORY: ${{ github.repository }}
+          REF: ${{ github.ref }}
+          DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          reference = {
+              "repository": os.environ["REPOSITORY"].lower(),
+              "commit": os.environ["COMMIT"],
+              "ref": os.environ["REF"],
+              "digest": os.environ["DIGEST"],
+              "image": os.environ["IMAGE"].lower(),
+          }
+          Path("image-reference.json").write_text(json.dumps(reference, indent=2) + "\n")
+          summary = Path(os.environ["GITHUB_STEP_SUMMARY"])
+          summary.write_text(
+              f"Image: `{reference['image']}`\n\n"
+              f"Commit: `{reference['commit']}`\n\n"
+              f"Source ref: `{reference['ref']}`\n"
+          )
+          PY
+      - name: Upload image reference
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-reference
+          path: image-reference.json
+          if-no-files-found: error
+          retention-days: 90
