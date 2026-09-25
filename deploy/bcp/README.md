@@ -36,7 +36,7 @@ chmod 600 ~/.config/bcp-openproject.env
 $EDITOR ~/.config/bcp-openproject.env
 ```
 
-Set `OPENPROJECT_HOSTNAME` to the host used by NPM and Cloudflare, `DATA_ROOT` to the dataset mountpoint, and `SECRET_KEY_BASE` to a fresh hexadecimal secret with at least 64 characters. Keep the env file outside Git. Values must be unquoted single lines. Leave the SMTP entries commented out unless SMTP is configured.
+The existing Cloudflare and NPM route uses `project.blindchicken.productions` and NAS port 8096. Set `DATA_ROOT` to the new dataset mountpoint, `SECRET_KEY_BASE` to a fresh hexadecimal secret with at least 64 characters, and `OPENPROJECT_SEED__ADMIN__USER__PASSWORD` to a fresh alphanumeric password with at least 32 characters. These values must be present before the public route can reach the app. Keep the env file outside Git. Values must be unquoted single lines. Leave the SMTP entries commented out unless SMTP is configured.
 
 The compose config uses one digest-pinned image, keeps the database and attachments on the dataset, defaults to host port 8096, and does not publish PostgreSQL's port. It sets `OPENPROJECT_HTTPS=true` and the configured hostname so OpenProject builds secure URLs and uses WSS for Hocuspocus. NPM terminates TLS.
 
@@ -86,7 +86,7 @@ In NPM, add a proxy host for `OPENPROJECT_HOSTNAME`, forward HTTP to the TrueNAS
 
 Optional SMTP settings use OpenProject's environment aliases. Uncomment and fill `EMAIL_DELIVERY_METHOD=smtp`, `SMTP_ADDRESS`, and any needed port, domain, authentication, TLS, username, and password entries in the protected env file. A password is kept in the private rendered app config and rollback render.
 
-After the first start, sign in as `admin` with the initial password `admin` and change it when prompted. Check that:
+After the first start, sign in as `admin` with the protected initial password from the env file and change it when prompted. Check that:
 
 - `https://OPENPROJECT_HOSTNAME` loads without redirect loops or mixed-content errors.
 - You can create a project and work package, upload an attachment, and download it again.

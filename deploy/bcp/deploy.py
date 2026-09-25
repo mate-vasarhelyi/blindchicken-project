@@ -26,6 +26,7 @@ COMPOSE = ROOT / "compose.yaml"
 DEFAULT_ENV = Path.home() / ".config" / "bcp-openproject.env"
 RUNTIME_KEYS = {
     "SECRET_KEY_BASE",
+    "OPENPROJECT_SEED__ADMIN__USER__PASSWORD",
     "EMAIL_DELIVERY_METHOD",
     "SMTP_ADDRESS",
     "SMTP_PORT",
@@ -36,7 +37,7 @@ RUNTIME_KEYS = {
     "SMTP_USER_NAME",
     "SMTP_PASSWORD",
 }
-SMTP_KEYS = RUNTIME_KEYS - {"SECRET_KEY_BASE", "EMAIL_DELIVERY_METHOD"}
+SMTP_KEYS = RUNTIME_KEYS - {"SECRET_KEY_BASE", "OPENPROJECT_SEED__ADMIN__USER__PASSWORD", "EMAIL_DELIVERY_METHOD"}
 ALLOWED_KEYS = RUNTIME_KEYS | {"OPENPROJECT_HOSTNAME", "DATA_ROOT", "APP_PORT"}
 IMAGE_PATTERN = re.compile(
     rf"^{re.escape(IMAGE_REPOSITORY)}:sha-([0-9a-f]{{40}})@(sha256:[0-9a-f]{{64}})$"
@@ -144,7 +145,7 @@ def read_env(path: Path, *, require_private: bool = True) -> dict[str, str]:
 
 
 def validate_env(values: dict[str, str]) -> dict[str, str]:
-    for key in ("OPENPROJECT_HOSTNAME", "DATA_ROOT", "SECRET_KEY_BASE"):
+    for key in ("OPENPROJECT_HOSTNAME", "DATA_ROOT", "SECRET_KEY_BASE", "OPENPROJECT_SEED__ADMIN__USER__PASSWORD"):
         if not values.get(key):
             raise DeployError(f"missing required environment value: {key}")
 
@@ -166,6 +167,9 @@ def validate_env(values: dict[str, str]) -> dict[str, str]:
     secret = values["SECRET_KEY_BASE"]
     if len(secret) < 64 or not re.fullmatch(r"[a-fA-F0-9]+", secret) or "replace" in secret.lower():
         raise DeployError("SECRET_KEY_BASE must be at least 64 hexadecimal characters")
+    admin_password = values["OPENPROJECT_SEED__ADMIN__USER__PASSWORD"]
+    if len(admin_password) < 32 or not re.fullmatch(r"[A-Za-z0-9]+", admin_password):
+        raise DeployError("initial admin password must be at least 32 alphanumeric characters")
 
     port = values.get("APP_PORT", "8096")
     if not port.isdecimal() or not 1 <= int(port) <= 65535:
@@ -303,7 +307,10 @@ def image_from_reference(reference: str) -> dict[str, str]:
 
 
 def render_compose(env_path: Path, values: dict[str, str], image: str) -> str:
-    runtime = {"SECRET_KEY_BASE": values["SECRET_KEY_BASE"]}
+    runtime = {
+        "SECRET_KEY_BASE": values["SECRET_KEY_BASE"],
+        "OPENPROJECT_SEED__ADMIN__USER__PASSWORD": values["OPENPROJECT_SEED__ADMIN__USER__PASSWORD"],
+    }
     for key in sorted(SMTP_KEYS | {"EMAIL_DELIVERY_METHOD"}):
         if values.get(key):
             runtime[key] = values[key]
@@ -563,12 +570,12 @@ def deploy_stage(args: argparse.Namespace, *, create: bool) -> None:
             raise DeployError("TrueNAS is not running the image in the local rollback record")
         rollback = preserve_previous(stage_dir, current_manifest, current_yaml)
         rollback_image = str(current_manifest["image"])
-        payload = {
-            "app_name": APP_NAME,
-            "update": {"custom_compose_config_string": yaml_text},
-        }
+        payload = {"custom_compose_config_string": yaml_text}
         method = "app.update"
-    truenas_call(method, payload, job=True)
+    if create:
+        truenas_call(method, payload, job=True)
+    else:
+        truenas_call(method, APP_NAME, payload, job=True)
     store_current(manifest, yaml_text)
     print(f"{'Created' if create else 'Applied'} TrueNAS app {APP_NAME}.")
     print(f"Image: {image}")

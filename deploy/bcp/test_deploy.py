@@ -17,6 +17,7 @@ ENV = {
     "DATA_ROOT": "/mnt/tank/apps/openproject-test",
     "APP_PORT": "8096",
     "SECRET_KEY_BASE": "0123456789abcdef" * 4,
+    "OPENPROJECT_SEED__ADMIN__USER__PASSWORD": "a" * 48,
 }
 
 
@@ -41,6 +42,7 @@ class DeployChecks(unittest.TestCase):
         self.assertEqual(deploy.validate_env(dict(ENV)), ENV)
         for key, value in (
             ("SECRET_KEY_BASE", "replace-with-a-secret-that-is-not-real"),
+            ("OPENPROJECT_SEED__ADMIN__USER__PASSWORD", "admin"),
             ("OPENPROJECT_HOSTNAME", "https://projects.example.test"),
             ("DATA_ROOT", "/mnt/tank/../outside"),
         ):
@@ -105,6 +107,7 @@ class DeployChecks(unittest.TestCase):
         self.assertNotIn("5432", rendered)
         self.assertNotIn("BCP_RUNTIME_ENV_FILE", rendered)
         self.assertIn(ENV["SECRET_KEY_BASE"], rendered)
+        self.assertIn(ENV["OPENPROJECT_SEED__ADMIN__USER__PASSWORD"], rendered)
 
 
 if __name__ == "__main__":
