@@ -81,7 +81,6 @@ describe('CardClickHandler', () => {
     card = {
       container: new ElementRef(root),
       itemClicked: new EventEmitter(),
-      selectionChanged: new EventEmitter(),
       showInfoButton: false,
     } as unknown as WorkPackageCardViewComponent;
     const handler = new CardClickHandler(injector, card);
@@ -113,9 +112,7 @@ describe('CardClickHandler', () => {
 
   it('preserves independent cards while resizing a pointer range', () => {
     const itemClicked:{ workPackageId:string, double:boolean }[] = [];
-    const selectionChanged:string[][] = [];
     card.itemClicked.subscribe((event) => itemClicked.push(event));
-    card.selectionChanged.subscribe((ids) => selectionChanged.push(ids));
     click('A');
     click('C', { ctrlKey: true });
     click('E', { shiftKey: true });
@@ -124,12 +121,6 @@ describe('CardClickHandler', () => {
     click('C', { shiftKey: true });
     expect(selected()).toEqual(['A', 'C']);
     expect(itemClicked.map((event) => event.workPackageId)).toEqual(['A', 'C', 'E', 'C']);
-    expect(selectionChanged.map((ids) => ids.sort())).toEqual([
-      ['A'],
-      ['A', 'C'],
-      ['A', 'C', 'D', 'E'],
-      ['A', 'C'],
-    ]);
   });
 
   it('keeps the final member deselected after its focus update', () => {
@@ -145,19 +136,15 @@ describe('CardClickHandler', () => {
     click('A');
     cardSurface('C').removeAttribute('data-test-selector');
     const itemClicked:{ workPackageId:string, double:boolean }[] = [];
-    const selectionChanged:string[][] = [];
     card.itemClicked.subscribe((event) => itemClicked.push(event));
-    card.selectionChanged.subscribe((ids) => selectionChanged.push(ids));
 
     expect(fireEvent.keyDown(cardSurface('C'), { key: 'a', ctrlKey: true })).toBe(false);
     expect(selected()).toEqual(['A', 'B', 'C', 'D', 'E']);
     expect(closeContextMenu).toHaveBeenCalledOnce();
     expect(itemClicked).toEqual([]);
-    expect(selectionChanged).toEqual([]);
 
     click('E', { shiftKey: true });
     expect(selected()).toEqual(['C', 'D', 'E']);
     expect(itemClicked).toEqual([{ workPackageId: 'E', double: false }]);
-    expect(selectionChanged).toEqual([['C', 'D', 'E']]);
   });
 });

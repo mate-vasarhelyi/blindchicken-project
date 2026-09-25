@@ -142,8 +142,6 @@ export class WorkPackageCardViewComponent extends UntilDestroyedMixin implements
 
   @Output() public onMoved = new EventEmitter<void>();
 
-  @Output() selectionChanged = new EventEmitter<string[]>();
-
   @Output() itemClicked = new EventEmitter<{ workPackageId:string, double:boolean }>();
 
   @Output() stateLinkClicked = new EventEmitter<{ workPackageId:string, requestedState:string }>();

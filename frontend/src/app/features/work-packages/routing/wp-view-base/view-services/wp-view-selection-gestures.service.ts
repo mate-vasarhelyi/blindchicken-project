@@ -39,13 +39,12 @@ export interface SelectionModifiers {
 export class WorkPackageViewSelectionGesturesService {
   private readonly selection = inject(WorkPackageViewSelectionService);
 
-  click(workPackageId:string, rendered:RenderedWorkPackage[], modifiers:SelectionModifiers, classIdentifier?:string):string[] {
+  handleClick(workPackageId:string, rendered:RenderedWorkPackage[], modifiers:SelectionModifiers, classIdentifier?:string):void {
     const row = findSelectionOccurrence(rendered, workPackageId, classIdentifier);
-    if (!row) return this.selection.getSelectedWorkPackageIds();
+    if (!row) return;
     if (modifiers.shiftKey) this.selection.rangeTo(row, rendered);
     else if (modifiers.ctrlKey || modifiers.metaKey) this.selection.toggleOccurrence(row);
     else this.selection.replaceOccurrence(row);
-    return this.selection.getSelectedWorkPackageIds();
   }
 
   replace(workPackageId:string, rendered:RenderedWorkPackage[], classIdentifier?:string):void {
@@ -53,7 +52,7 @@ export class WorkPackageViewSelectionGesturesService {
     if (row) this.selection.replaceOccurrence(row);
   }
 
-  contextMenu(workPackageId:string, rendered:RenderedWorkPackage[], classIdentifier?:string):void {
+  handleContextMenu(workPackageId:string, rendered:RenderedWorkPackage[], classIdentifier?:string):void {
     if (!this.selection.isSelected(workPackageId)) {
       this.replace(workPackageId, rendered, classIdentifier);
     }

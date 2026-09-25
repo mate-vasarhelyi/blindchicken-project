@@ -65,7 +65,7 @@ describe('WorkPackageViewSelectionService', () => {
   it('accepts calendar selection without a rendered anchor', () => {
     selection.setSelection('2', -1);
     expect(selection.getSelectedWorkPackageIds()).toEqual(['2']);
-    gestures.click('4', rows, { shiftKey: true });
+    gestures.handleClick('4', rows, { shiftKey: true });
     expect(selection.getSelectedWorkPackageIds()).toEqual(['4']);
   });
 
@@ -84,10 +84,10 @@ describe('WorkPackageViewSelectionService', () => {
   });
 
   it('clears stale ranges when importing initialization membership', () => {
-    gestures.click('1', rows, {});
-    gestures.click('4', rows, { shiftKey: true });
+    gestures.handleClick('1', rows, {});
+    gestures.handleClick('4', rows, { shiftKey: true });
     selection.initializeSelection(['2']);
-    gestures.click('3', rows, { shiftKey: true });
+    gestures.handleClick('3', rows, { shiftKey: true });
     expect(selection.getSelectedWorkPackageIds()).toEqual(['3']);
   });
 
@@ -155,7 +155,7 @@ describe('WorkPackageViewSelectionService', () => {
     selection.toggleOccurrence(header);
     selection.rangeTo(header, [header, ...rows]);
     selection.selectAll([header]);
-    gestures.click('2', rows, { ctrlKey: true }, rows[0].classIdentifier);
+    gestures.handleClick('2', rows, { ctrlKey: true }, rows[0].classIdentifier);
     gestures.replace('5', rows);
     expect(selection.getSelectedWorkPackageIds()).toEqual(['2']);
   });

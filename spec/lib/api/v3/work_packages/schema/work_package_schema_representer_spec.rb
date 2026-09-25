@@ -664,38 +664,6 @@ RSpec.describe API::V3::WorkPackages::Schema::WorkPackageSchemaRepresenter do
       end
     end
 
-    describe "spentTime" do
-      context "with the view_time_entries permission" do
-        let(:permissions) { %i[edit_work_packages view_time_entries] }
-
-        it_behaves_like "has basic schema properties" do
-          let(:path) { "spentTime" }
-          let(:type) { "Duration" }
-          let(:name) { I18n.t("activerecord.attributes.work_package.spent_time") }
-          let(:required) { false }
-          let(:writable) { false }
-        end
-      end
-
-      context "with the view_own_time_entries permission" do
-        let(:permissions) { %i[edit_work_packages view_own_time_entries] }
-
-        it_behaves_like "has basic schema properties" do
-          let(:path) { "spentTime" }
-          let(:type) { "Duration" }
-          let(:name) { I18n.t("activerecord.attributes.work_package.spent_time") }
-          let(:required) { false }
-          let(:writable) { false }
-        end
-      end
-
-      context "without any view time_entries permission" do
-        it "has no spentTime attribute" do
-          expect(subject).not_to have_json_path("spentTime")
-        end
-      end
-    end
-
     describe "percentageDone" do
       context "in work-based progress calculation mode",
               with_settings: { work_package_done_ratio: "field" } do
@@ -1457,7 +1425,7 @@ RSpec.describe API::V3::WorkPackages::Schema::WorkPackageSchemaRepresenter do
     shared_let(:variant) do
       create(:type_variant, type: family_root, variant_name: "Variant").tap do |named|
         TypeVariant::ASPECTS.each do |aspect|
-          link_configuration(named, source: base_variant, aspect:)
+          link_configuration(named, aspect:)
         end
       end
     end

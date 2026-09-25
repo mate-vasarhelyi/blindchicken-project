@@ -79,7 +79,7 @@ describe('card selection occurrences', () => {
     TestBed.inject(IsolatedQuerySpace).tableRendered.putValue(rows);
     TestBed.inject(States).workPackages.get('2').putValue({ id: '2', displayId: '2' } as WorkPackageResource);
     card = {
-      itemClicked: new EventEmitter(), selectionChanged: new EventEmitter(), showInfoButton: false,
+      itemClicked: new EventEmitter(), showInfoButton: false,
     } as unknown as WorkPackageCardViewComponent;
   });
 
@@ -94,13 +94,13 @@ describe('card selection occurrences', () => {
 
   it('anchors a card click at the clicked occurrence', () => {
     new CardClickHandler(injector, card).handleEvent(card, event('click'));
-    gestures.click('4', rows, { shiftKey: true });
+    gestures.handleClick('4', rows, { shiftKey: true });
     expect(selection.getSelectedWorkPackageIds()).toEqual(['2', '4']);
   });
 
   it('anchors a card context menu at the clicked occurrence', () => {
     new CardRightClickHandler(injector, card).handleEvent(card, event('contextMenu'));
-    gestures.click('4', rows, { shiftKey: true });
+    gestures.handleClick('4', rows, { shiftKey: true });
     expect(selection.getSelectedWorkPackageIds()).toEqual(['2', '4']);
   });
 
@@ -112,7 +112,7 @@ describe('card selection occurrences', () => {
       stateLinkClicked: new EventEmitter(),
     });
     singleCard.emitStateLinkClicked(event('click'), { id: '2' } as WorkPackageResource);
-    gestures.click('4', rows, { shiftKey: true });
+    gestures.handleClick('4', rows, { shiftKey: true });
     expect(selection.getSelectedWorkPackageIds()).toEqual(['2', '4']);
   });
 });
