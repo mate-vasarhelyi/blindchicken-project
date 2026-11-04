@@ -40,6 +40,10 @@ See COPYRIGHT and LICENSE files for more details.
   end
 %>
 
-<% export_fonts_fields(@custom_style).each do |font| %>
-  <%= render partial: "custom_styles/uploads/font",  locals: { font: } %>
+<%= form_for @custom_style, url: custom_style_path, html: { multipart: true, class: "form -vertical" } do |f| %>
+  <% export_fonts_fields(@custom_style).each do |font| %>
+    <%= render partial: "custom_styles/uploads/font", locals: { f:, font: } %>
+  <% end %>
+
+  <%= render partial: "custom_styles/uploads/save_button" %>
 <% end %>

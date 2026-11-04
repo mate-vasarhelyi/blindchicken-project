@@ -131,6 +131,47 @@ module CustomStylesHelper
     apply_custom_styles?(skip_ee_check: false) && CustomStyle.current.touch_icon.present?
   end
 
+  def branding_image_fields(custom_style)
+    [
+      image_upload_field(custom_style, :logo, label: :label_custom_logo, img_class: "custom-logo-preview"),
+      image_upload_field(custom_style, :logo_mobile, label: :label_custom_logo_mobile, img_class: "custom-logo-mobile-preview"),
+      image_upload_field(custom_style, :favicon, label: :label_custom_favicon, img_class: "custom-favicon-preview"),
+      image_upload_field(custom_style, :touch_icon, label: :label_custom_touch_icon, img_class: "custom-touch-icon-preview")
+    ]
+  end
+
+  def pdf_export_image_fields(custom_style)
+    fields = %i[export_logo export_cover]
+    fields << :export_footer if OpenProject::FeatureDecisions.minutes_styling_meeting_pdf_active?
+
+    fields.map do |field|
+      image_upload_field(custom_style, field,
+                         label: :"label_custom_#{field}",
+                         img_class: "custom-#{field.to_s.dasherize}-preview",
+                         accept: "image/png, image/jpg")
+    end
+  end
+
+  def image_upload_field(custom_style, field, label:, img_class:, accept: "image/*")
+    present = custom_style.persisted? && custom_style.public_send(field).present?
+    {
+      field:,
+      label: I18n.t(label),
+      present:,
+      source: (custom_style_image_path(custom_style, field) if present),
+      img_class:,
+      accept:,
+      delete_path: public_send(:"custom_style_#{field}_delete_path"),
+      instructions: I18n.t("text_custom_#{field}_instructions")
+    }
+  end
+
+  def custom_style_image_path(custom_style, field)
+    public_send(:"custom_style_#{field}_path",
+                digest: custom_style.digest,
+                filename: custom_style.public_send(:"#{field}_identifier"))
+  end
+
   def export_fonts_fields(custom_style)
     %i[regular bold italic bold_italic].map do |variant|
       field = :"export_font_#{variant}"
