@@ -27,54 +27,10 @@ See COPYRIGHT and LICENSE files for more details.
 
 ++#%>
 
-<%= render partial: "custom_styles/uploads/image",  locals: { image:{
-  field: :logo,
-  label: I18n.t(:label_custom_logo),
-  present: @custom_style.id && @custom_style.logo.present?,
-  source: @custom_style.id && @custom_style.logo.present? ?
-            custom_style_logo_path(digest: @custom_style.digest, filename: @custom_style.logo_identifier) :
-            nil,
-  img_class: "custom-logo-preview",
-  accept: "image/*",
-  delete_path: custom_style_logo_delete_path,
-  instructions: I18n.t("text_custom_logo_instructions")
-} } %>
+<%= form_for @custom_style, url: custom_style_path, html: { multipart: true, class: "form -vertical" } do |f| %>
+  <% branding_image_fields(@custom_style).each do |image| %>
+    <%= render partial: "custom_styles/uploads/image", locals: { f:, image: } %>
+  <% end %>
 
-<%= render partial: "custom_styles/uploads/image", locals: { image: {
-  field: :logo_mobile,
-  label: I18n.t(:label_custom_logo_mobile),
-  present: @custom_style.id && @custom_style.logo_mobile.present?,
-  source: @custom_style.id && @custom_style.logo_mobile.present? ?
-            custom_style_logo_mobile_path(digest: @custom_style.digest, filename: @custom_style.logo_mobile_identifier) :
-            nil,
-  img_class: "custom-logo-mobile-preview",
-  accept: "image/*",
-  delete_path: custom_style_logo_mobile_delete_path,
-  instructions: I18n.t("text_custom_logo_mobile_instructions")
-} } %>
-
-<%= render partial: "custom_styles/uploads/image",  locals: { image:{
-  field: :favicon,
-  label: I18n.t(:label_custom_favicon),
-  present: @custom_style.id && @custom_style.favicon.present?,
-  source: @custom_style.id && @custom_style.favicon.present? ?
-            custom_style_favicon_path(digest: @custom_style.digest, filename: @custom_style.favicon_identifier) :
-            nil,
-  img_class: "custom-favicon-preview",
-  accept: "image/*",
-  delete_path: custom_style_favicon_delete_path,
-  instructions: I18n.t("text_custom_favicon_instructions")
-} } %>
-
-<%= render partial: "custom_styles/uploads/image",  locals: { image:{
-  field: :favicon,
-  label: I18n.t(:label_custom_touch_icon),
-  present: @custom_style.id && @custom_style.touch_icon.present?,
-  source: @custom_style.id && @custom_style.touch_icon.present? ?
-            custom_style_touch_icon_path(digest: @custom_style.digest, filename: @custom_style.touch_icon_identifier) :
-            nil,
-  img_class: "custom-touch-icon-preview",
-  accept: "image/*",
-  delete_path: custom_style_touch_icon_delete_path,
-  instructions: I18n.t("text_custom_touch_icon_instructions")
-} } %>
+  <%= render partial: "custom_styles/uploads/save_button" %>
+<% end %>

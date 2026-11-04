@@ -54,9 +54,7 @@ class CustomStylesController < ApplicationController
 
   def show
     @custom_style = CustomStyle.current || CustomStyle.new
-    @current_theme = @custom_style.theme
-    @theme_options = options_for_theme_select
-    @colors = Color.all.sort_by(&:name)
+    assign_show_variables
 
     if params[:tab].blank?
       redirect_to tab: "interface"
@@ -66,25 +64,28 @@ class CustomStylesController < ApplicationController
   def upsell; end
 
   def create
+    return redirect_to custom_style_path unless custom_style_params_submitted?
+
     @custom_style = CustomStyle.create(custom_style_params)
     if @custom_style.valid?
       redirect_to custom_style_path
     else
-      flash[:error] = @custom_style.errors.full_messages
-      render action: :show, status: :unprocessable_entity
+      render_show_with_error(@custom_style.errors.full_messages)
     end
   end
 
   def update
     flash.clear
+    # Saving an upload tab without choosing a file submits no custom_style values.
+    return redirect_to custom_style_path unless custom_style_params_submitted?
+
     @custom_style = get_or_create_custom_style
     parameters = custom_style_params
     error = validate_font_uploads(parameters)
     if !error && @custom_style.update(parameters)
       redirect_to custom_style_path
     else
-      flash[:error] = error || @custom_style.errors.full_messages
-      render action: :show, status: :unprocessable_entity
+      render_show_with_error(error || @custom_style.errors.full_messages)
     end
   end
 
@@ -183,8 +184,12 @@ class CustomStylesController < ApplicationController
   end
 
   def update_themes
+    theme = theme_from_params
+    # A custom theme is shown as a disabled select option, so saving it submits no known theme.
+    return redirect_with_missing_theme_error if theme.nil?
+
     call = ::Design::UpdateDesignService
-       .new(theme_from_params)
+       .new(theme)
        .call
 
     call.on_success do
@@ -212,6 +217,27 @@ class CustomStylesController < ApplicationController
   end
 
   private
+
+  def assign_show_variables
+    @current_theme = @custom_style.theme
+    @theme_options = options_for_theme_select
+    @colors = Color.all.sort_by(&:name)
+  end
+
+  def render_show_with_error(error)
+    flash.now[:error] = error
+    assign_show_variables
+    render action: :show, status: :unprocessable_entity
+  end
+
+  def redirect_with_missing_theme_error
+    flash[:error] = "#{I18n.t('admin.custom_styles.color_theme')} #{I18n.t('activerecord.errors.messages.blank')}"
+    redirect_to custom_style_path
+  end
+
+  def custom_style_params_submitted?
+    params[:custom_style].present?
+  end
 
   def theme_from_params
     OpenProject::CustomStyles::ColorThemes.themes.find { |t| t[:theme] == params[:theme] }

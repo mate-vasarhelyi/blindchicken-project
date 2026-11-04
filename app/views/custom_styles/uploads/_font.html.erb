@@ -27,44 +27,35 @@ See COPYRIGHT and LICENSE files for more details.
 
 ++#%>
 
-<%= form_for @custom_style, url: custom_style_path, html: { multipart: true, class: "form -vertical" } do |f| %>
-  <section class="form--section">
-    <fieldset class="form--fieldset">
-      <legend class="form--fieldset-legend"><%= font[:label] %></legend>
-      <p class="form--field-instructions"><%= font[:instructions] %></p>
-      <% if font[:present] %>
-        <p>
-          <%= render(Primer::Beta::Octicon.new(icon: :file)) %>
-          <strong><%= font[:filename] %></strong></p>
-      <% end %>
-      <div class="grid-block">
-        <div class="form--field -required">
-          <div class="attachment_field form--field-container -vertical -shrink">
-            <div class="form--file-container">
-              <%= f.file_field font[:field], required: true, class: "attachment_choose_file", accept: "font/ttf", size: "15" %>
-            </div>
+<section class="form--section">
+  <fieldset class="form--fieldset">
+    <legend class="form--fieldset-legend"><%= font[:label] %></legend>
+    <p class="form--field-instructions"><%= font[:instructions] %></p>
+    <% if font[:present] %>
+      <p>
+        <%= render(Primer::Beta::Octicon.new(icon: :file)) %>
+        <strong><%= font[:filename] %></strong></p>
+    <% end %>
+    <div class="grid-block">
+      <div class="form--field">
+        <div class="attachment_field form--field-container -vertical -shrink">
+          <div class="form--file-container">
+            <%= f.file_field font[:field], class: "attachment_choose_file", accept: ".ttf,font/ttf", size: "15" %>
           </div>
         </div>
       </div>
-      <%=
-        render(Primer::Beta::Button.new(
-          type: :submit
-        )) do |button|
-          button.with_leading_visual_icon(icon: font[:present] ? :upload : :plus)
-          t(font[:present] ? :button_replace : :button_upload)
-        end
-      %>
-      <% if font[:present] %>
-        <%= render(Primer::Beta::Button.new(
-          tag: :a,
-          href: font[:delete_path],
-          data: { turbo_method: :delete }
-        )) do |button|
-          button.with_leading_visual_icon(icon: :trash)
-          t(:button_delete)
-        end
-        %>
-      <% end %>
-    </fieldset>
-  </section>
-<% end %>
+    </div>
+    <% if font[:present] %>
+      <%= render(
+            Primer::Beta::Button.new(
+              tag: :a,
+              href: font[:delete_path],
+              data: { turbo_method: :delete }
+            )
+          ) do |button|
+            button.with_leading_visual_icon(icon: :trash)
+            t(:button_delete)
+          end %>
+    <% end %>
+  </fieldset>
+</section>
